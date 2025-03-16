@@ -1,4 +1,5 @@
 import House from '../models/House';
+import User from '../models/User';
 
 
 class HouseController{
@@ -14,10 +15,10 @@ class HouseController{
     async store(req, res){
         const { filename } = req.file;
         const {description, price, location, status} = req.body;
-        const {user_ID} = req.headers;
+        const {user_id} = req.headers;
 
         const house = await House.create({
-            user: user_ID,
+            user: user_id,
             thumbnail: filename,
             description,
             price,
@@ -32,10 +33,22 @@ class HouseController{
         const {filename} = req.file;
         const {house_id} = req.params;
         const {description, price, location, status} = req.body;
-        const {user_ID} = req.headers;
+        const {user_id} = req.headers;
 
-        const houses = await House.updateOne({ _id: house_id }, {
-            user: user_ID,
+//====>
+    const user = await User.findById(user_id);
+    const houses = await House.findById(house_id);
+
+    if(String(user._id) !== String(houses.user)){
+        return res.status(401).json({ error: 'Não autorizado'});
+    }
+
+
+
+
+
+        await House.updateOne({ _id: house_id }, {
+            user: user_id,
             thumbnail: filename,
             description,
             price,
@@ -43,7 +56,7 @@ class HouseController{
             status,
         });
 
-        return res.json(houses);
+        return res.send();
     }
 
 
