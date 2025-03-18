@@ -43,10 +43,6 @@ class HouseController{
         return res.status(401).json({ error: 'Não autorizado'});
     }
 
-
-
-
-
         await House.updateOne({ _id: house_id }, {
             user: user_id,
             thumbnail: filename,
@@ -59,7 +55,29 @@ class HouseController{
         return res.send();
     }
 
+    async destroy(req, res) {
+        try {
+            const { house_id } = req.params;
+            const { user_id } = req.headers;
 
+            const user = await User.findById(user_id);
+            if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
+
+            const house = await House.findById(house_id);
+            if (!house) return res.status(404).json({ error: 'Casa não encontrada' });
+
+            if (String(user._id) !== String(house.user)) {
+                return res.status(401).json({ error: 'Não autorizado' });
+            }
+
+            await House.findByIdAndDelete(house_id);
+
+            return res.json({ message: 'Deletado com sucesso' });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Erro ao deletar casa' });
+        }
+    }
 }
 
 export default new HouseController();
